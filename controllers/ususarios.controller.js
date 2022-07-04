@@ -82,11 +82,11 @@ const actualizarUsuario = async (req, res=response) => {
     }
 
     // Actualizaciones
-    const campos = req.body;
+    const { password, google, email, ...campos } = req.body;
+    // const campos = req.body;
 
-    if ( usuarioDB.email === req.body.email ) {
-      delete campos.email;
-    }else{
+    if ( usuarioDB.email !== email ) {
+    
       const existeEmail = await Usuario.findOne( { email: req.body.email } );
       if ( existeEmail ) {
         return res.status(400).json({
@@ -96,8 +96,14 @@ const actualizarUsuario = async (req, res=response) => {
       }
     }
 
-    delete campos.password;
-    delete campos.google;
+    if (!usuarioDB.google) {
+      campos.email = email;
+    }else if (usuarioDB.email !== email) {
+      return res.status(400).json({
+          ok:false,
+          msg:'Usuarios de google no pueden cambiar su correo'
+        });
+    }
 
     const usuarioActualizado = await Usuario.findByIdAndUpdate( uid, campos, { new:true } );
     
